@@ -7,7 +7,8 @@
 ## 🚀 Key Links & Deliverables
 
 * **Interactive Prototype (Live):** [https://batman00723.github.io/Product-Intern-Assignment/](https://batman00723.github.io/Product-Intern-Assignment/)
-* **Submission Document (4 Pages strictly):** [`Cheerio-Product-Intern-Assignment-4Pages.pdf`](Cheerio-Product-Intern-Assignment-4Pages.pdf) | [`Cheerio-Product-Intern-Assignment-4Pages.docx`](Cheerio-Product-Intern-Assignment-4Pages.docx)
+* **Submission Document (4 Pages strictly):** [`Cheerio-Product-Intern-Assignment-4Pages.pdf`](Cheerio-Product-Intern-Assignment-4Pages.pdf) / [`Cheerio Report.pdf`](Cheerio%20Report.pdf) | [`Cheerio-Product-Intern-Assignment-4Pages.docx`](Cheerio-Product-Intern-Assignment-4Pages.docx)
+* **Prompt Log & Iteration History (.md):** [`prompt-log.md`](prompt-log.md)
 * **Unit Economics Model (Formulas & Assumptions):** [`cheerio-support-unit-economics.csv`](cheerio-support-unit-economics.csv)
 * **Standalone Clickable HTML File:** [`index.html`](index.html) / [`cheerio-copilot-workspace.html`](cheerio-copilot-workspace.html)
 * **Full Master Working Draft:** [`assignment1-working-draft.md`](assignment1-working-draft.md)
