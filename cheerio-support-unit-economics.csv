@@ -1,0 +1,45 @@
+Metric / Assumption,Value / Formula,Unit,Notes & Sources
+--- SECTION 1: VOLUME GUESTIMATE & RESOLUTION ---,,,
+Active Cheerio Businesses,5000,Businesses,Given in assignment brief
+Monthly Support Queries per Business,1.0,Queries / Business / Month,Blended rate: 40% active campaign builders + 60% steady state
+Total Monthly Support Queries,=B2*B3,Queries / Month,Total incoming tickets across WhatsApp setup & delivery (5000)
+AI Copilot Resolution Target (Self-Serve),60%,%,North Star metric target over 3 months
+Queries Resolved by AI Copilot,=B4*B5,Queries / Month,Setup queries solved automatically without human agent (3000)
+Queries Escalated to Human Support,=B4-B6,Queries / Month,Complex edge cases (40%) handed over to support agents (2000)
+,,,
+--- SECTION 2: AI TOKEN PRICING & RUNNING COST (GROQ) ---,,,
+AI Model Selected,Llama 3 70B (Groq),Text,"High-speed LPU inference (~300 tokens/sec) for sub-second UI response"
+Input Token Price per 1k Tokens,0.00059,USD ($),Official Groq Enterprise pricing ($0.59 / 1M tokens)
+Output Token Price per 1k Tokens,0.00079,USD ($),Official Groq Enterprise pricing ($0.79 / 1M tokens)
+USD to INR Exchange Rate,95.76,INR (₹),Live mid-market exchange rate
+Input Tokens per Query Session,3000,Tokens,Optimized prompt (~800 system + ~700 account state + ~1500 pruned history)
+Output Tokens per Query Session,250,Tokens,Concise suggestions & structured form updates (~180-200 words)
+Total Cost per Query Session (USD),=(B12/1000)*B9 + (B13/1000)*B10,USD ($),Fully loaded AI cost per query ($0.0019675)
+Total Cost per Query Session (INR),=B14*B11,INR (₹),Cost per query in Indian Rupees (~₹0.188 / ~₹0.19)
+Total Monthly AI Running Cost (USD),=B4*B14,USD ($),Total monthly LLM bill for 5000 queries ($9.84)
+Total Monthly AI Running Cost (INR),=B16*B11,INR (₹),Total monthly AI bill (~₹942 / month - office coffee budget)
+,,,
+--- SECTION 3: HUMAN SUPPORT BASELINE ---,,,
+Support Agent Monthly Salary (Fully Loaded),30000,INR (₹),Tier-1 support agent salary + tools + overhead (India SaaS benchmark)
+Tickets Resolved per Agent per Month,500,Tickets / Month,~22-23 tickets/day across 22 working days
+Cost per Human Ticket (INR),=B19/B20,INR (₹),Direct cost of one human-handled support ticket (₹60.00)
+Human Agents Needed (Without AI),=ROUNDUP(B4/B20, 0),Agents,10 support agents required for 5000 monthly tickets
+Baseline Monthly Support Cost (Without AI),=B22*B19,INR (₹),Monthly support payroll without AI (₹3,00,000 / month)
+,,,
+--- SECTION 4: WITH AI COPILOT & NET SAVINGS ---,,,
+Human Tickets Remaining (40% Escalated),=B7,Tickets / Month,Tickets that need human intervention (2000 tickets)
+Human Agents Needed (With AI),=ROUNDUP(B25/B20, 0),Agents,4 support agents required to handle escalated tickets
+New Human Support Payroll,=B26*B19,INR (₹),Monthly payroll for 4 human support agents (₹1,20,000 / month)
+Total New Monthly Support Cost,=B27+B17,INR (₹),Human payroll + Groq AI running cost (₹1,20,942 / month)
+Net Monthly Support Savings (INR),=B23-B28,INR (₹),Monthly cost reduction (₹1,79,058 / month)
+Net Annual Support Savings (INR),=B29*12,INR (₹),Annual net cost savings (~₹21.5 Lakhs / year)
+Support Cost Reduction Percentage,=(B23-B28)/B23,%,59.7% reduction in overall support expenditure
+Support Agents Saved / Reallocated,=B22-B26,Agents,6 support FTEs saved or moved to proactive customer success
+,,,
+--- SECTION 5: BILLING STRATEGY & AUDIT CONTROLS ---,,,
+Recommended Billing Model,Freemium (First 5 Free),Strategy,First 5 campaign setups 100% free to eliminate onboarding hesitation
+Monetization (Campaign 6 Onward),₹499/mo or Growth Tier,Pricing,Pro Copilot Add-On (₹499/mo) or Growth Plan upgrade (₹2499/mo)
+Gross Margin on Paid Add-On,99.4%,Margin,"At ₹0.19/query, 15 campaigns cost ₹2.85 against ₹499 fee (99.4% margin)"
+Audit Check 1: Daily Token Ceiling,2.00,USD ($)/day,Daily alert on Groq dashboard to catch unexpected runaway loops
+Audit Check 2: Loop Throttling,15,Turns / Session,Throttle chat and offer human agent handover after 15 turns in 1 hour
+Audit Check 3: Escalation Review,Weekly,Cadence,Every Monday review 40% escalated tickets to update pre-flight prompts

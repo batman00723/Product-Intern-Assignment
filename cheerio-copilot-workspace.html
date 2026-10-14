@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cheerio — Setup Copilot (Chatbot × Form)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --canvas:       #f8fafc; /* Crisp Slate-50 background */
+      --card:         #ffffff; /* Pure white card surface */
+      --card-subtle:  #f1f5f9; /* Slate-100 */
+      --stone:        #e2e8f0; /* Crisp Slate-200 border */
+      --stone-hover:  #cbd5e1; /* Slate-300 */
+      --muted:        #94a3b8; /* Slate-400 */
+      --dim:          #64748b; /* Slate-500 (Accessible 4.5:1+) */
+      --ink:          #0f172a; /* Slate-900 (High-contrast text) */
+      --ink2:         #334155; /* Slate-700 */
+      --primary:      #0f766e; /* Deep Pine / WhatsApp Forest Teal (Non-AI palette) */
+      --primary-hover:#115e59;
+      --primary-bg:   #f0fdfa; /* Teal-50 */
+      --primary-bd:   #99f6e4; /* Teal-200 */
+      --accent:       #ea580c; /* Cheerio Energetic Orange dot */
+      --green:        #059669; /* WhatsApp / Success Green */
+      --green-bg:     #ecfdf5; /* Emerald-50 */
+      --green-bd:     #a7f3d0; /* Emerald-200 */
+      --warn:         #d97706; /* Warning Amber */
+      --warn-bg:      #fffbeb; /* Amber-50 */
+      --warn-bd:      #fde68a; /* Amber-200 */
+      --warn-txt:     #92400e; /* Amber-800 */
+      --radius-sm:    8px;
+      --radius-md:    12px;
+      --radius-lg:    16px;
+      --shadow-sm:    0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+      --shadow-md:    0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      height: 56px;
+      background: var(--card);
+      border-bottom: 1px solid var(--stone);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    }
+    .topbar-l { display: flex; align-items: center; gap: 14px; }
+    .logo {
+      font-size: 19px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .logo-dot {
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .divider { width: 1px; height: 20px; background: var(--stone); }
+    .ctx h2 { font-size: 13.5px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+    .ctx p  { font-size: 11.5px; color: var(--dim); margin-top: 1px; }
+    .topbar-r { display: flex; align-items: center; gap: 10px; }
+    .wa-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--green-bg); border: 1px solid var(--green-bd);
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 12px; font-weight: 600; color: var(--green);
+    }
+    .wa-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2.5s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,.4); }
+      50%      { box-shadow: 0 0 0 4px rgba(16,185,129,.15); }
+    }
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 12px 4px 6px;
+      border: 1px solid var(--stone); border-radius: 20px;
+      font-size: 12.5px; font-weight: 500; color: var(--ink2);
+      background: var(--canvas);
+    }
+    .u-av {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: #e2e8f0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10.5px; font-weight: 700; color: var(--ink);
+    }
+
+    /* ── LAYOUT ── */
+    .layout { display: flex; flex: 1; min-height: 0; }
+
+    /* ── CHAT ── */
+    .chat-side {
+      width: 400px; flex-shrink: 0;
+      border-right: 1px solid var(--stone);
+      background: var(--card);
+      display: flex; flex-direction: column; min-height: 0;
+    }
+    .chat-hd {
+      padding: 16px 20px; border-bottom: 1px solid var(--stone);
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+      background: #fafafa;
+    }
+    .cop-av {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--primary-bg);
+      border: 1px solid var(--primary-bd);
+      color: var(--primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0; font-weight: 700;
+    }
+    .chat-hd h3 { font-size: 15px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+    .chat-hd p  { font-size: 11.5px; color: var(--dim); margin-top: 1px; }
+
+    .chat-log {
+      flex: 1; overflow-y: auto;
+      padding: 20px; display: flex; flex-direction: column;
+      gap: 14px; scroll-behavior: smooth;
+      background: #ffffff;
+    }
+    .chat-log::-webkit-scrollbar { width: 5px; }
+    .chat-log::-webkit-scrollbar-thumb { background: var(--stone); border-radius: 4px; }
+
+    /* bubbles */
+    .msg-row {
+      display: flex; gap: 10px; align-items: flex-end;
+      animation: msgPop .22s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes msgPop {
+      from { opacity: 0; transform: translateY(6px) scale(.97); }
+      to   { opacity: 1; transform: none; }
+    }
+    .msg-row.user { flex-direction: row-reverse; }
+
+    .m-av {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+    .m-av.ai   { background: var(--primary-bg); border: 1px solid var(--primary-bd); color: var(--primary); }
+    .m-av.user { background: #0f172a; color: #ffffff; }
+
+    .m-body { max-width: 82%; display: flex; flex-direction: column; gap: 3px; }
+
+    .bubble {
+      padding: 12px 16px;
+      font-size: 13.5px; line-height: 1.6;
+      border-radius: 14px;
+    }
+    .msg-row.ai   .bubble {
+      background: #f8fafc;
+      border: 1px solid var(--stone);
+      color: var(--ink);
+      border-bottom-left-radius: 3px;
+    }
+    .msg-row.user .bubble {
+      background: #0f172a;
+      color: #ffffff;
+      border-bottom-right-radius: 3px;
+    }
+
+    .m-meta { font-size: 10.5px; color: var(--muted); }
+    .msg-row.user .m-meta { text-align: right; }
+
+    .warn-callout {
+      margin-top: 10px; background: var(--warn-bg);
+      border: 1px solid var(--warn-bd); border-radius: 10px;
+      padding: 12px 14px; font-size: 12.5px; color: var(--warn-txt); line-height: 1.55;
+    }
+    .warn-callout strong {
+      display: block; font-size: 11px;
+      text-transform: uppercase; letter-spacing: .05em;
+      color: #b45309; margin-bottom: 4px;
+    }
+
+    /* chips */
+    .chips-wrap {
+      padding: 12px 20px; border-top: 1px solid var(--stone);
+      background: #f8fafc;
+      flex-shrink: 0;
+    }
+    .chips-lbl {
+      font-size: 10.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
+      color: var(--dim); margin-bottom: 8px;
+    }
+    .chips-list { display: flex; flex-direction: column; gap: 6px; }
+    .chip {
+      display: flex; align-items: center; gap: 10px;
+      background: #ffffff; border: 1px solid var(--stone);
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: background .15s, border-color .15s, transform .12s, box-shadow .12s;
+      text-align: left; color: var(--ink2); line-height: 1.4;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+    }
+    .chip:hover {
+      background: var(--primary-bg);
+      border-color: var(--primary-bd);
+      color: var(--primary);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+    }
+    .chip-ic { font-size: 15px; flex-shrink: 0; }
+
+    /* input */
+    .inp-row {
+      padding: 12px 20px; border-top: 1px solid var(--stone);
+      display: flex; gap: 8px; background: #ffffff; flex-shrink: 0;
+    }
+    .msg-input {
+      flex: 1; border: 1px solid var(--stone-hover); border-radius: 8px;
+      background: #ffffff; padding: 10px 14px;
+      font: 13.5px 'Inter', sans-serif; color: var(--ink);
+      outline: none; transition: border-color .15s, box-shadow .15s;
+    }
+    .msg-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-bg); }
+    .msg-input::placeholder { color: var(--muted); }
+    .send-btn {
+      height: 40px; padding: 0 18px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 8px;
+      font: 600 13px 'Inter', sans-serif; cursor: pointer;
+      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+      transition: background .15s, transform .1s;
+    }
+    .send-btn:hover { background: var(--primary-hover); }
+    .send-btn:active { transform: scale(.98); }
+
+    /* ── CANVAS ── */
+    .canvas-side {
+      flex: 1;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 30px 40px 120px;
+      background: var(--canvas);
+      display: block;
+    }
+    .canvas-side::-webkit-scrollbar { width: 6px; }
+    .canvas-side::-webkit-scrollbar-thumb { background: var(--stone); border-radius: 6px; }
+
+    .canvas-head { margin-bottom: 24px; }
+    .canvas-head h1 {
+      font-size: 24px; font-weight: 800;
+      letter-spacing: -.03em; margin-bottom: 4px;
+      color: var(--ink);
+    }
+    .canvas-head p { font-size: 13.5px; color: var(--dim); }
+
+    /* ── SETUP CARDS ── */
+    .setup-card {
+      display: block;
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--stone);
+      border-radius: 14px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow-sm);
+      transition: border-color .25s, box-shadow .25s;
+    }
+    .setup-card.active-card {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-bg), var(--shadow-sm);
+    }
+
+    .card-hd {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 16px 22px;
+      background: #fafbfc;
+      border-bottom: 1px solid var(--stone);
+      border-top-left-radius: 14px;
+      border-top-right-radius: 14px;
+    }
+
+    .card-hd-l { display: flex; align-items: center; gap: 12px; }
+
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12.5px; font-weight: 700; flex-shrink: 0;
+      transition: background .3s, color .3s, border .3s;
+    }
+    .step-num.idle   { background: #f1f5f9; color: var(--dim); border: 1px solid var(--stone); }
+    .step-num.active { background: var(--primary); color: #fff; }
+    .step-num.done   { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+
+    .card-title { font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: -0.015em; }
+
+    .status-badge {
+      font-size: 11.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .05em;
+      padding: 4px 11px; border-radius: 20px;
+      transition: all .3s;
+    }
+    .status-badge.idle    { background: #f1f5f9; color: var(--dim); border: 1px solid var(--stone); }
+    .status-badge.active  { background: var(--primary-bg); color: var(--primary); border: 1px solid var(--primary-bd); }
+    .status-badge.done    { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-bd); }
+    .status-badge.warning { background: var(--warn-bg); color: var(--warn-txt); border: 1px solid var(--warn-bd); }
+
+    .card-body { padding: 22px 24px; display: block; }
+
+    /* ── REAL FORM INPUT CONTROLS ── */
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--dim);
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--stone-hover);
+      border-radius: 8px;
+      padding: 9px 13px;
+      font: 13.5px 'Inter', sans-serif;
+      color: var(--ink);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s, background .2s;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-bg);
+    }
+
+    .form-textarea {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--stone-hover);
+      border-radius: 8px;
+      padding: 11px 13px;
+      font: 13.5px 'Inter', sans-serif;
+      color: var(--ink);
+      outline: none;
+      line-height: 1.6;
+      min-height: 85px;
+      resize: vertical;
+      transition: border-color .15s, box-shadow .15s, background .2s;
+    }
+
+    /* Highlight pulse animation for dynamically filled fields */
+    .field-populated {
+      animation: fieldFlash 1.2s ease-out;
+    }
+    @keyframes fieldFlash {
+      0%   { background-color: #ecfdf5; border-color: #10b981; }
+      100% { background-color: #ffffff; border-color: var(--stone-hover); }
+    }
+
+    /* Questions Form Block */
+    .question-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      background: #f8fafc;
+      border: 1px solid var(--stone);
+      border-radius: 10px;
+      margin-bottom: 10px;
+      transition: border-color .2s;
+    }
+    .question-row:last-child { margin-bottom: 0; }
+    .question-row:focus-within { border-color: var(--primary-bd); background: #ffffff; }
+
+    .q-tag {
+      background: var(--primary-bg);
+      color: var(--primary);
+      border: 1px solid var(--primary-bd);
+      border-radius: 6px;
+      padding: 3px 7px;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 6px;
+    }
+
+    .q-fields {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Meta warning */
+    .meta-warn {
+      display: flex; gap: 12px; align-items: flex-start;
+      background: var(--warn-bg); border: 1px solid var(--warn-bd);
+      border-radius: 10px; padding: 14px 16px; margin-bottom: 16px;
+    }
+    .meta-warn-ic  { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .meta-warn-txt { flex: 1; }
+    .meta-warn-txt strong {
+      display: block; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .05em;
+      color: #b45309; margin-bottom: 3px;
+    }
+    .meta-warn-txt p { font-size: 13px; color: var(--warn-txt); line-height: 1.5; }
+    .fix-btn {
+      align-self: flex-start;
+      background: var(--primary); color: #fff; border: none;
+      border-radius: 7px; padding: 8px 14px;
+      font: 600 12.5px 'Inter', sans-serif;
+      cursor: pointer; white-space: nowrap; flex-shrink: 0;
+      transition: background .15s, transform .1s;
+    }
+    .fix-btn:hover { background: var(--primary-hover); }
+    .fix-btn:active { transform: scale(.98); }
+
+    /* Approval Section */
+    .approval-card {
+      display: block;
+      width: 100%;
+      background: #ffffff;
+      border: 2px solid var(--stone);
+      border-radius: 14px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow-sm);
+      transition: filter .3s, border-color .3s;
+    }
+    .approval-card.locked { opacity: .65; filter: grayscale(.3); pointer-events: none; }
+    .approval-card:not(.locked) { border-color: var(--primary); }
+    .ap-inner { padding: 24px 26px; }
+    .ap-inner h3 {
+      font-size: 18px; font-weight: 700; letter-spacing: -0.02em;
+      margin-bottom: 4px; color: var(--ink);
+    }
+    .ap-inner > p { font-size: 13px; color: var(--dim); margin-bottom: 16px; line-height: 1.5; }
+
+    .summary-table {
+      background: #f8fafc; border: 1px solid var(--stone);
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
+    }
+    .sum-row {
+      display: flex; justify-content: space-between;
+      align-items: center; padding: 8px 0; font-size: 13px;
+    }
+    .sum-row + .sum-row { border-top: 1px solid var(--stone); }
+    .sum-lbl { color: var(--dim); font-weight: 500; }
+    .sum-val { font-weight: 600; text-align: right; color: var(--ink); }
+
+    .check-label {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13.5px; cursor: pointer; margin-bottom: 16px;
+      font-weight: 500; color: var(--ink);
+    }
+    .check-label input { width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer; }
+
+    .pub-btn {
+      width: 100%; padding: 13px;
+      background: var(--green); color: #fff; border: none;
+      border-radius: 8px;
+      font: 700 14px 'Inter', sans-serif;
+      cursor: not-allowed; opacity: .45;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: background .15s, opacity .2s, transform .1s;
+    }
+    .pub-btn.ready { opacity: 1; cursor: pointer; }
+    .pub-btn.ready:hover { background: #047857; }
+    .pub-btn.ready:active { transform: scale(.99); }
+
+    /* Escalation */
+    .esc-strip {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 14px;
+      padding: 16px 22px;
+      background: #ffffff;
+      border: 1px dashed var(--stone-hover); border-radius: 12px;
+      margin-bottom: 40px;
+    }
+    .esc-strip p           { font-size: 13px; color: var(--dim); line-height: 1.4; }
+    .esc-strip p strong    { display: block; color: var(--ink); margin-bottom: 2px; }
+    .esc-btn {
+      flex-shrink: 0; background: #ffffff;
+      border: 1px solid var(--stone-hover); border-radius: 8px;
+      padding: 8px 15px; font: 600 13px 'Inter', sans-serif;
+      color: var(--ink2); cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .esc-btn:hover { background: #f8fafc; border-color: var(--dim); }
+
+    /* Modals */
+    .overlay {
+      position: fixed; inset: 0;
+      background: rgba(15, 23, 42, 0.55); backdrop-filter: blur(4px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 99; padding: 20px;
+    }
+    .overlay.open { display: flex; }
+    .modal-box {
+      background: #ffffff; border: 1px solid var(--stone);
+      border-radius: 16px; max-width: 480px; width: 100%;
+      padding: 30px; text-align: center;
+      box-shadow: var(--shadow-md);
+      animation: mIn .25s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes mIn {
+      from { opacity: 0; transform: scale(.95) translateY(8px); }
+      to   { opacity: 1; transform: none; }
+    }
+    .m-icon {
+      width: 50px; height: 50px; border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+    }
+    .modal-box h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 8px; color: var(--ink); }
+    .modal-box > p { font-size: 13.5px; color: var(--dim); line-height: 1.6; margin-bottom: 20px; }
+    .modal-list {
+      background: #f8fafc; border: 1px solid var(--stone);
+      border-radius: 10px; padding: 14px 16px;
+      text-align: left; font-size: 13px;
+      line-height: 2; margin-bottom: 22px; color: var(--ink2);
+    }
+    .m-row { display: flex; gap: 8px; }
+    .m-btn-row { display: flex; gap: 10px; }
+    .m-outline {
+      flex: 1; padding: 11px; background: #ffffff;
+      border: 1px solid var(--stone-hover); border-radius: 8px;
+      font: 600 13px 'Inter', sans-serif; color: var(--ink2);
+      cursor: pointer; transition: background .15s;
+    }
+    .m-outline:hover { background: #f8fafc; }
+    .m-btn-primary {
+      width: 100%; padding: 12px;
+      background: var(--primary); color: #fff; border: none;
+      border-radius: 8px;
+      font: 600 14px 'Inter', sans-serif;
+      cursor: pointer; transition: background .15s;
+    }
+    .m-btn-primary:hover { background: var(--primary-hover); }
+
+    /* ── STICKY STEPPER BAR ── */
+    .stepper-bar {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border: 1px solid var(--stone);
+      border-radius: 12px;
+      padding: 10px 18px;
+      margin-bottom: 22px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    }
+    .step-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      cursor: pointer;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--dim);
+      transition: color .2s;
+    }
+    .step-pill.active { color: var(--primary); }
+    .step-pill.done { color: var(--green); }
+    .step-dot {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      color: var(--dim);
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s, color .2s;
+    }
+    .step-pill.active .step-dot {
+      background: var(--primary);
+      color: #ffffff;
+    }
+    .step-pill.done .step-dot {
+      background: var(--green-bg);
+      border: 1px solid var(--green-bd);
+      color: var(--green);
+    }
+    .step-line {
+      flex: 1;
+      height: 2px;
+      background: var(--stone);
+      margin: 0 10px;
+      transition: background .2s;
+    }
+    .step-line.done {
+      background: var(--green-bd);
+    }
+
+    /* ── WHATSAPP PHONE SIMULATION ── */
+    .wa-preview-wrap {
+      margin-top: 18px;
+      border-top: 1px dashed var(--stone);
+      padding-top: 16px;
+    }
+    .wa-preview-hd {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .wa-phone-card {
+      background: #efeae2;
+      background-image: radial-gradient(#dcd5cb 1px, transparent 1px);
+      background-size: 16px 16px;
+      border: 1px solid #d5cec5;
+      border-radius: 12px;
+      padding: 16px;
+      max-width: 480px;
+    }
+    .wa-phone-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+    }
+    .wa-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #075e54;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .wa-sender-info strong {
+      display: block;
+      font-size: 12.5px;
+      color: #111b21;
+    }
+    .wa-verified {
+      color: #25d366;
+      font-size: 11px;
+      margin-left: 2px;
+    }
+    .wa-sender-info span {
+      font-size: 10.5px;
+      color: #667781;
+    }
+    .wa-bubble-body {
+      background: #ffffff;
+      border-radius: 8px 8px 8px 0;
+      padding: 10px 12px;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+      position: relative;
+    }
+    .wa-bubble-text {
+      font-size: 13px;
+      color: #111b21;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    .wa-bubble-time {
+      font-size: 10px;
+      color: #667781;
+      text-align: right;
+      margin-top: 4px;
+    }
+    .wa-ticks {
+      color: #0f766e;
+    }
+    .wa-quick-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+    .wa-action-btn {
+      background: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #00a884;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-l">
+    <div class="logo">cheerio <span class="logo-dot"></span></div>
+    <div class="divider"></div>
+    <div class="ctx">
+      <h2>Setup Copilot</h2>
+      <p>WhatsApp Admissions Funnel</p>
+    </div>
+  </div>
+  <div class="topbar-r">
+    <div class="wa-pill"><span class="wa-dot"></span> WA Business API · Connected</div>
+    <div class="user-chip"><div class="u-av">AM</div> Aman Mishra (GATESprint)</div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <!-- CHAT PANEL (LEFT) -->
+  <div class="chat-side">
+    <div class="chat-hd">
+      <div class="cop-av">✦</div>
+      <div>
+        <h3>Setup Assistant</h3>
+        <p>Tell me what to build — I'll auto-fill your form</p>
+      </div>
+    </div>
+
+    <div class="chat-log" id="chatLog">
+      <div class="msg-row ai">
+        <div class="m-av ai">✦</div>
+        <div class="m-body">
+          <div class="bubble">Hi Aman 👋<br>What campaign or workflow do you want to set up today? You can describe it here, or edit the form directly on the right.</div>
+          <div class="m-meta">Copilot · now</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chips-wrap" id="chipsWrap">
+      <div class="chips-lbl">Try saying</div>
+      <div class="chips-list" id="chipsList">
+        <div class="chip" onclick="step_goal()"><span class="chip-ic">💬</span>"I want to run a free GATE strategy session"</div>
+        <div class="chip" onclick="step_batch()"><span class="chip-ic">📢</span>"Announce a new weekend batch"</div>
+        <div class="chip" onclick="step_trouble()"><span class="chip-ic">❓</span>"Why was my template rejected?"</div>
+      </div>
+    </div>
+
+    <div class="inp-row">
+      <input class="msg-input" id="msgInput" placeholder="Describe what you want to set up…" onkeydown="if(event.key==='Enter') sendMsg()">
+      <button class="send-btn" onclick="sendMsg()">
+        Send
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- CANVAS PANEL (RIGHT: REAL FORMS) -->
+  <div class="canvas-side">
+
+    <div class="canvas-head">
+      <h1>WhatsApp Campaign Setup</h1>
+      <p>Real-time campaign form. The Copilot updates these fields automatically as you chat, and you can edit any field directly.</p>
+    </div>
+
+    <!-- STICKY STEPPER NAVIGATION -->
+    <div class="stepper-bar">
+      <div class="step-pill active" id="stp1" onclick="document.getElementById('card1').scrollIntoView({behavior:'smooth'})">
+        <span class="step-dot" id="sd1">1</span>
+        <span>Details</span>
+      </div>
+      <div class="step-line" id="stl1"></div>
+      <div class="step-pill" id="stp2" onclick="document.getElementById('card2').scrollIntoView({behavior:'smooth'})">
+        <span class="step-dot" id="sd2">2</span>
+        <span>Questions</span>
+      </div>
+      <div class="step-line" id="stl2"></div>
+      <div class="step-pill" id="stp3" onclick="document.getElementById('card3').scrollIntoView({behavior:'smooth'})">
+        <span class="step-dot" id="sd3">3</span>
+        <span>Template</span>
+      </div>
+      <div class="step-line" id="stl3"></div>
+      <div class="step-pill" id="stp4" onclick="document.getElementById('card4').scrollIntoView({behavior:'smooth'})">
+        <span class="step-dot" id="sd4">4</span>
+        <span>Routing</span>
+      </div>
+      <div class="step-line" id="stl4"></div>
+      <div class="step-pill" id="stp5" onclick="document.getElementById('approvalCard').scrollIntoView({behavior:'smooth'})">
+        <span class="step-dot" id="sd5">5</span>
+        <span>Review &amp; Sign-off</span>
+      </div>
+    </div>
+
+    <!-- CARD 1: Real Form Inputs for Session Details -->
+    <div class="setup-card" id="card1">
+      <div class="card-hd">
+        <div class="card-hd-l">
+          <div class="step-num idle" id="sn1">1</div>
+          <div class="card-title">Session &amp; Academic Targeting</div>
+        </div>
+        <div class="status-badge idle" id="sb1">Draft</div>
+      </div>
+      <div class="card-body">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="fCamp">Campaign Title</label>
+            <input type="text" class="form-input" id="fCamp" placeholder="e.g. Free GATE Strategy Session" value="">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fYear">Target Exam Year</label>
+            <select class="form-select" id="fYear">
+              <option disabled selected value="">Select target exam year...</option>
+              <option value="GATE 2027 &amp; 2028 (College Aspirants)">GATE 2027 &amp; 2028 (College Aspirants)</option>
+              <option value="GATE 2026 Crash Course">GATE 2026 Crash Course</option>
+              <option value="Working Professional Fast-Track">Working Professional Fast-Track</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fWhen">Session Date &amp; Time</label>
+            <input type="text" class="form-input" id="fWhen" placeholder="e.g. Sunday · 7:00 PM IST (Live Online)" value="">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fPapers">Eligible GATE Papers</label>
+            <input type="text" class="form-input" id="fPapers" placeholder="e.g. CSE, DA (AI), ME, EE, EC" value="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 2: Real Form Inputs for Qualifying Questions -->
+    <div class="setup-card" id="card2">
+      <div class="card-hd">
+        <div class="card-hd-l">
+          <div class="step-num idle" id="sn2">2</div>
+          <div class="card-title">Student WhatsApp Qualifying Flow</div>
+        </div>
+        <div class="status-badge idle" id="sb2">Not Configured</div>
+      </div>
+      <div class="card-body">
+        <p style="font-size:13px; color:var(--dim); margin-bottom:14px;">
+          Students who click your ad or reply START will be asked these questions one by one on WhatsApp:
+        </p>
+
+        <div class="question-row">
+          <div class="q-tag">Q1</div>
+          <div class="q-fields">
+            <label class="form-label">Question Text</label>
+            <input type="text" class="form-input" id="q1Text" placeholder="Describe your goal in chat to auto-generate questions..." value="">
+            <label class="form-label" style="margin-top:2px;">Quick Reply Options</label>
+            <input type="text" class="form-input" id="q1Opts" placeholder="e.g. Option 1 | Option 2" value="">
+          </div>
+        </div>
+
+        <div class="question-row">
+          <div class="q-tag">Q2</div>
+          <div class="q-fields">
+            <label class="form-label">Question Text</label>
+            <input type="text" class="form-input" id="q2Text" placeholder="Describe your goal in chat to auto-generate questions..." value="">
+            <label class="form-label" style="margin-top:2px;">Quick Reply Options</label>
+            <input type="text" class="form-input" id="q2Opts" placeholder="e.g. Option 1 | Option 2" value="">
+          </div>
+        </div>
+
+        <div class="question-row">
+          <div class="q-tag">Q3</div>
+          <div class="q-fields">
+            <label class="form-label">Question Text</label>
+            <input type="text" class="form-input" id="q3Text" placeholder="Describe your goal in chat to auto-generate questions..." value="">
+            <label class="form-label" style="margin-top:2px;">Quick Reply Options</label>
+            <input type="text" class="form-input" id="q3Opts" placeholder="e.g. Option 1 | Option 2" value="">
+          </div>
+        </div>
+
+        <div class="question-row">
+          <div class="q-tag">Q4</div>
+          <div class="q-fields">
+            <label class="form-label">Question Text</label>
+            <input type="text" class="form-input" id="q4Text" placeholder="Describe your goal in chat to auto-generate questions..." value="">
+            <label class="form-label" style="margin-top:2px;">Quick Reply Options</label>
+            <input type="text" class="form-input" id="q4Opts" placeholder="e.g. Option 1 | Option 2" value="">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 3: Real Form Inputs for Broadcast Message Template -->
+    <div class="setup-card" id="card3">
+      <div class="card-hd">
+        <div class="card-hd-l">
+          <div class="step-num idle" id="sn3">3</div>
+          <div class="card-title">WhatsApp Broadcast Message Template</div>
+        </div>
+        <div class="status-badge idle" id="sb3">Pending Copy</div>
+      </div>
+      <div class="card-body">
+        
+        <!-- Edge Case Warning Banner (Initially Hidden until Copilot analyzes copy) -->
+        <div class="meta-warn" id="metaWarn" style="display:none;">
+          <div class="meta-warn-ic">⚠️</div>
+          <div class="meta-warn-txt">
+            <strong>Meta Policy Pre-Flight Warning</strong>
+            <p>The phrase <em>"get a winning plan"</em> in the text below has an 82% rejection risk under Meta's promotional guidelines. Recommended fix: replace with <em>"get a study plan and session details"</em>.</p>
+          </div>
+          <button class="fix-btn" onclick="applyFix()">Apply 1-Click Fix</button>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="fTemplate">Message Body Text (Approved on WhatsApp Cloud API)</label>
+          <textarea class="form-textarea" id="fTemplate" placeholder="Your WhatsApp broadcast copy will appear here once drafted or reviewed with Copilot..."></textarea>
+        </div>
+
+        <div class="form-grid-2" style="margin-top:14px;">
+          <div class="form-group">
+            <label class="form-label">Button 1 (Quick Reply)</label>
+            <input type="text" class="form-input" id="fBtn1" value="Reply START">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Button 2 (URL Link)</label>
+            <input type="text" class="form-input" id="fBtn2" value="https://gatesprint.com/syllabus">
+          </div>
+        </div>
+
+        <!-- Live WhatsApp Student Preview -->
+        <div class="wa-preview-wrap">
+          <div class="wa-preview-hd">
+            <span class="form-label" style="display:flex; align-items:center; gap:6px;">
+              <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--green);"></span>
+              Live Student WhatsApp Preview
+            </span>
+            <span style="font-size:11px; color:var(--dim);">Simulating WhatsApp Mobile UI</span>
+          </div>
+          
+          <div class="wa-phone-card">
+            <div class="wa-phone-top">
+              <div class="wa-avatar">GS</div>
+              <div class="wa-sender-info">
+                <strong>GATESprint Academy <span class="wa-verified">✓</span></strong>
+                <span>WhatsApp Business Verified</span>
+              </div>
+            </div>
+            
+            <div class="wa-bubble-body">
+              <div class="wa-bubble-text" id="waBubbleText">Your WhatsApp broadcast message will render here in real time as Copilot drafts it...</div>
+              <div class="wa-bubble-time">7:00 PM <span class="wa-ticks">✓✓</span></div>
+            </div>
+            
+            <div class="wa-quick-actions">
+              <button class="wa-action-btn" id="waBtnPreview1" type="button">💬 Reply START</button>
+              <div class="wa-action-btn" id="waBtnPreview2">🔗 https://gatesprint.com/syllabus</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARD 4: Real Form Inputs for Lead Routing -->
+    <div class="setup-card" id="card4">
+      <div class="card-hd">
+        <div class="card-hd-l">
+          <div class="step-num idle" id="sn4">4</div>
+          <div class="card-title">Where New Leads Go (Integrations)</div>
+        </div>
+        <div class="status-badge done" id="sb4">Connected (Default)</div>
+      </div>
+      <div class="card-body">
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="fSheet">Destination Google Sheet</label>
+            <select class="form-select" id="fSheet">
+              <option selected>GATESprint — Strategy Session Leads (Sheet 1)</option>
+              <option>GATESprint — General Admissions 2026-27</option>
+              <option>+ Connect a New Google Sheet...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fCounsellor">Assigned Admissions Counsellor</label>
+            <select class="form-select" id="fCounsellor">
+              <option selected>Priya Sharma · Senior Admissions (WhatsApp: +91 98111 22233)</option>
+              <option>Rahul Verma · Admissions Lead (WhatsApp: +91 98222 33344)</option>
+              <option>Round-Robin Team Distribution</option>
+            </select>
+          </div>
+        </div>
+        <p style="font-size:12.5px; color:var(--dim); margin-top:14px;">
+          ✓ Verified: Cheerio writes rows in real time with timestamp, phone number, paper, target year, and callback request.
+        </p>
+      </div>
+    </div>
+
+    <!-- CARD 5: Human-in-the-Loop Approval & Publish -->
+    <div class="approval-card locked" id="approvalCard">
+      <div class="ap-inner">
+        <h3>Human-in-the-Loop Review</h3>
+        <p>Cheerio will not broadcast or publish any automation without your explicit verification.</p>
+
+        <div class="summary-table">
+          <div class="sum-row"><span class="sum-lbl">Campaign Title</span><span class="sum-val" id="sumCamp" style="color:var(--dim);">— (Waiting for setup)</span></div>
+          <div class="sum-row"><span class="sum-lbl">Exam &amp; Papers</span><span class="sum-val" id="sumPapers" style="color:var(--dim);">—</span></div>
+          <div class="sum-row"><span class="sum-lbl">Meta Template</span><span class="sum-val" id="sumTmpl" style="color:var(--dim);">Pending draft</span></div>
+          <div class="sum-row"><span class="sum-lbl">Lead Sync</span><span class="sum-val">Google Sheet + Priya Sharma</span></div>
+        </div>
+
+        <label class="check-label">
+          <input type="checkbox" id="confirmChk" onchange="togglePub()">
+          <span>I have reviewed the WhatsApp copy, qualifying questions, and routing destinations.</span>
+        </label>
+
+        <button class="pub-btn" id="pubBtn" onclick="publishFlow()">
+          <span>Publish Automation Live</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ESCALATION STRIP -->
+    <div class="esc-strip">
+      <div>
+        <p><strong>Stuck or encountering unexpected errors?</strong>A Cheerio human specialist can step directly into this form with full context.</p>
+      </div>
+      <button class="esc-btn" onclick="showEsc()">Talk to Cheerio Support</button>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="overlay" id="successModal">
+  <div class="modal-box">
+    <div class="m-icon" style="background:var(--green-bg); color:var(--green)">✓</div>
+    <h2>Your WhatsApp Funnel is Live!</h2>
+    <p>Students can now register directly on WhatsApp. New leads will be captured and routed in real time.</p>
+    <div class="modal-list">
+      <div class="m-row">📋 <span>Leads syncing to <strong>GATESprint — Strategy Session Leads</strong></span></div>
+      <div class="m-row">👤 <span><strong>Priya Sharma</strong> gets WhatsApp notification on high-intent leads</span></div>
+      <div class="m-row">✅ <span>Meta Template <strong>Pre-Validated</strong> and compliant with policies</span></div>
+    </div>
+    <button class="m-btn-primary" onclick="closeModals()">Done — Return to Dashboard</button>
+  </div>
+</div>
+
+<!-- ESCALATION MODAL -->
+<div class="overlay" id="escModal">
+  <div class="modal-box">
+    <div class="m-icon" style="background:var(--primary-bg); color:var(--primary)">💬</div>
+    <h2>Handover to Human Support Specialist</h2>
+    <p>A Cheerio technical specialist will join this setup session. All form inputs, conversation history, and Meta check logs are transferred automatically.</p>
+    <div class="modal-list">
+      <div class="m-row">🏢 <span>Account: <strong>GATESprint Academy (Aman Mishra)</strong></span></div>
+      <div class="m-row">📋 <span>Current Step: <strong>Template &amp; Broadcast Verification</strong></span></div>
+      <div class="m-row">⏱ <span>Estimated Wait: <strong>~2 minutes</strong></span></div>
+    </div>
+    <div class="m-btn-row">
+      <button class="m-outline" onclick="closeModals()">Cancel</button>
+      <button class="m-btn-primary" style="width:auto; flex:1;" onclick="confirmEsc()">Connect to Support Agent</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const chatLog = document.getElementById('chatLog');
+  let fixDone = false;
+
+  function addMsg(role, html) {
+    const row = document.createElement('div');
+    row.className = `msg-row ${role}`;
+    const isAI = role === 'ai';
+    row.innerHTML = `
+      <div class="m-av ${isAI ? 'ai' : 'user'}">${isAI ? '✦' : 'AM'}</div>
+      <div class="m-body">
+        <div class="bubble">${html}</div>
+        <div class="m-meta">${isAI ? 'Copilot' : 'You'} · now</div>
+      </div>`;
+    chatLog.appendChild(row);
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  function setChips(list) {
+    const cl = document.getElementById('chipsList');
+    const cw = document.getElementById('chipsWrap');
+    cl.innerHTML = '';
+    cw.style.display = list.length ? '' : 'none';
+    list.forEach(c => {
+      const d = document.createElement('div');
+      d.className = 'chip';
+      d.innerHTML = `<span class="chip-ic">${c.icon}</span>${c.text}`;
+      d.onclick = c.fn;
+      cl.appendChild(d);
+    });
+  }
+
+  function updateCardStatus(id, snId, sbId, state) {
+    const card = document.getElementById(id);
+    card.classList.remove('active-card');
+    if (state === 'active') card.classList.add('active-card');
+
+    const sn = document.getElementById(snId);
+    sn.className = `step-num ${state === 'done' ? 'done' : state === 'active' ? 'active' : 'idle'}`;
+    if (state === 'done') sn.textContent = '✓';
+
+    const sb = document.getElementById(sbId);
+    const map = { done: ['done','✓ Configured'], active: ['active','Editing...'], warning: ['warning','Action Needed'] };
+    const [cls, txt] = map[state] || ['idle','Editable Form'];
+    sb.className = `status-badge ${cls}`;
+    sb.textContent = txt;
+  }
+
+  function flashField(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('field-populated');
+    void el.offsetWidth;
+    el.classList.add('field-populated');
+  }
+
+  // Stepper Controller
+  function setStepper(step) {
+    for (let i = 1; i <= 5; i++) {
+      const pill = document.getElementById('stp' + i);
+      const dot = document.getElementById('sd' + i);
+      const line = document.getElementById('stl' + (i - 1));
+      if (!pill || !dot) continue;
+      if (i < step) {
+        pill.className = 'step-pill done';
+        dot.textContent = '✓';
+        if (line) line.className = 'step-line done';
+      } else if (i === step) {
+        pill.className = 'step-pill active';
+        dot.textContent = i === 5 ? '5' : i;
+        if (line) line.className = 'step-line done';
+      } else {
+        pill.className = 'step-pill';
+        dot.textContent = i === 5 ? '5' : i;
+        if (line) line.className = 'step-line';
+      }
+    }
+  }
+
+  const syncTemplatePreview = (v) => {
+    const bubble = document.getElementById('waBubbleText');
+    if (bubble) bubble.textContent = v || 'Your WhatsApp broadcast message will render here in real time as Copilot drafts it...';
+  };
+
+  // Real two-way synchronization: input changes update the summary table & phone preview
+  document.getElementById('fCamp').addEventListener('input', (e) => {
+    const v = e.target.value.trim();
+    const el = document.getElementById('sumCamp');
+    el.textContent = v || '— (Waiting for setup)';
+    el.style.color = v ? 'var(--ink)' : 'var(--dim)';
+  });
+
+  document.getElementById('fPapers').addEventListener('input', (e) => {
+    const v = e.target.value.trim();
+    const el = document.getElementById('sumPapers');
+    el.textContent = v || '—';
+    el.style.color = v ? 'var(--ink)' : 'var(--dim)';
+  });
+
+  document.getElementById('fTemplate').addEventListener('input', (e) => {
+    const v = e.target.value;
+    syncTemplatePreview(v);
+    const warn = document.getElementById('metaWarn');
+    const sumTmpl = document.getElementById('sumTmpl');
+    if (v.toLowerCase().includes('winning plan')) {
+      warn.style.display = 'flex';
+      updateCardStatus('card3', 'sn3', 'sb3', 'warning');
+      sumTmpl.textContent = '⚠️ Rejection Risk (82%)';
+      sumTmpl.style.color = 'var(--warn)';
+    } else if (v.trim().length > 10) {
+      warn.style.display = 'none';
+      updateCardStatus('card3', 'sn3', 'sb3', 'done');
+      sumTmpl.textContent = 'Meta-compliant ✓';
+      sumTmpl.style.color = 'var(--green)';
+    }
+  });
+
+  document.getElementById('fBtn1').addEventListener('input', (e) => {
+    const el = document.getElementById('waBtnPreview1');
+    if (el) el.textContent = '💬 ' + (e.target.value.trim() || 'Reply START');
+  });
+
+  document.getElementById('fBtn2').addEventListener('input', (e) => {
+    const el = document.getElementById('waBtnPreview2');
+    if (el) el.textContent = '🔗 ' + (e.target.value.trim() || 'https://gatesprint.com');
+  });
+
+  /* ── INTERACTIVE WORKFLOW ── */
+
+  function step_goal() {
+    addMsg('user', 'I want to run a free GATE strategy session for 2027 & 2028 aspirants.');
+    setChips([]);
+
+    setTimeout(() => {
+      addMsg('ai', `I've updated your real form on the right! 
+        <br><br>• Set Campaign Title: <strong>Free GATE Strategy Session</strong>
+        <br>• Selected Papers: <strong>CSE, DA, ME, EE, EC</strong>
+        <br>• Structured <strong>4 qualifying questions</strong> for student intent.`);
+
+      // Populate Card 1
+      document.getElementById('fCamp').value = 'Free GATE Strategy Session';
+      document.getElementById('fYear').value = 'GATE 2027 & 2028 (College Aspirants)';
+      document.getElementById('fWhen').value = 'Sunday · 7:00 PM IST (Live Online)';
+      document.getElementById('fPapers').value = 'CSE, DA (AI), ME, EE, EC';
+      ['fCamp', 'fYear', 'fWhen', 'fPapers'].forEach(flashField);
+
+      // Populate Card 2 (Questions)
+      document.getElementById('q1Text').value = 'Which GATE paper are you preparing for?';
+      document.getElementById('q1Opts').value = 'CSE | DA (Data Science & AI) | Mechanical | Electrical | Electronics';
+      document.getElementById('q2Text').value = 'Which year are you targeting?';
+      document.getElementById('q2Opts').value = 'GATE 2027 (Pre-final year) | GATE 2028 (2nd year) | Working Professional';
+      document.getElementById('q3Text').value = 'What is your current preparation status?';
+      document.getElementById('q3Opts').value = 'Just started basics | Halfway through syllabus | Looking for test series';
+      document.getElementById('q4Text').value = 'Would you like batch fee structure & counsellor callback?';
+      document.getElementById('q4Opts').value = 'Yes, please call me | Send brochure on WhatsApp only';
+      ['q1Text', 'q1Opts', 'q2Text', 'q2Opts', 'q3Text', 'q3Opts', 'q4Text', 'q4Opts'].forEach(flashField);
+
+      updateCardStatus('card1','sn1','sb1','done');
+      updateCardStatus('card2','sn2','sb2','done');
+      setStepper(3);
+
+      // Sync summary
+      const sc = document.getElementById('sumCamp');
+      sc.textContent = 'Free GATE Strategy Session';
+      sc.style.color = 'var(--ink)';
+
+      const sp = document.getElementById('sumPapers');
+      sp.textContent = 'GATE 2027/28 (CSE, DA, ME, EE, EC)';
+      sp.style.color = 'var(--ink)';
+
+      setChips([
+        { icon:'👉', text:'Review WhatsApp template & check for Meta policy errors', fn: step_template },
+        { icon:'✏️', text:'Change session day to Saturday 7 PM', fn: step_editDay },
+      ]);
+    }, 600);
+  }
+
+  function step_editDay() {
+    addMsg('user', 'Change session day to Saturday 7 PM.');
+    setTimeout(() => {
+      const w = document.getElementById('fWhen');
+      w.value = 'Saturday · 7:00 PM IST (Live Online)';
+      flashField('fWhen');
+      addMsg('ai', 'Updated the form field! Session timing is now set to <strong>Saturday 7:00 PM</strong>.');
+      setChips([{ icon:'👉', text:'Now check the WhatsApp message template', fn: step_template }]);
+    }, 500);
+  }
+
+  function step_template() {
+    addMsg('user', 'Check the WhatsApp message template for Meta policy errors.');
+    updateCardStatus('card3','sn3','sb3','active');
+
+    setTimeout(() => {
+      // Populate template copy
+      const tmpl = document.getElementById('fTemplate');
+      const val = 'Free GATE Strategy Session this Sunday at 7 PM! Join now to get a winning plan for GATE 2027. Reply START to reserve your seat and choose your branch.';
+      tmpl.value = val;
+      syncTemplatePreview(val);
+      flashField('fTemplate');
+      document.getElementById('metaWarn').style.display = 'flex';
+      updateCardStatus('card3','sn3','sb3','warning');
+
+      const st = document.getElementById('sumTmpl');
+      st.textContent = '⚠️ Rejection Risk (82%)';
+      st.style.color = 'var(--warn)';
+
+      addMsg('ai', `I drafted your template copy on Card 3 and rendered your live student phone preview:
+        <div class="warn-callout">
+          <strong>⚠️ Meta Rejection Warning</strong>
+          The phrase <em>"get a winning plan"</em> triggers promotional spam filters (Policy 4.2). 
+          <br><br>Click <strong>Apply 1-Click Fix</strong> above the textarea to replace it with <em>"get a study plan and session details"</em>.
+        </div>`);
+
+      setChips([
+        { icon:'✅', text:'Apply 1-Click Fix in the template textarea', fn: applyFix },
+        { icon:'⚠️', text:'Keep original text and proceed anyway', fn: keepOriginal },
+      ]);
+    }, 600);
+  }
+
+  function applyFix() {
+    if (fixDone) return;
+    fixDone = true;
+
+    addMsg('user', 'Apply the recommended fix to the template textarea.');
+    setChips([]);
+
+    setTimeout(() => {
+      document.getElementById('metaWarn').style.display = 'none';
+      const tmpl = document.getElementById('fTemplate');
+      const fixedVal = 'Free GATE Strategy Session this Sunday at 7 PM! Join now to get a study plan and session details for GATE 2027. Reply START to reserve your seat and choose your branch.';
+      tmpl.value = fixedVal;
+      syncTemplatePreview(fixedVal);
+      flashField('fTemplate');
+      
+      updateCardStatus('card3','sn3','sb3','done');
+      updateCardStatus('card4','sn4','sb4','done');
+      setStepper(5);
+
+      const st = document.getElementById('sumTmpl');
+      st.textContent = 'Meta-compliant ✓ (0% risk)';
+      st.style.color = 'var(--green)';
+
+      addMsg('ai', `Form textarea updated! ✅ The template is now <strong>100% Meta-compliant</strong> and synced with student preview.
+        <br><br>Lead sync to <strong>GATESprint — Strategy Session Leads</strong> is verified. 
+        <br><br><strong>Human-in-the-Loop Safeguard:</strong> Please inspect Card 5 below and tick the review checkbox to enable publishing.`);
+
+      document.getElementById('approvalCard').classList.remove('locked');
+      document.getElementById('approvalCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
+
+      setChips([{
+        icon: '📋',
+        text: 'Scroll to Review Summary on Card 5',
+        fn: () => {
+          document.getElementById('approvalCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
+        }
+      }]);
+    }, 500);
+  }
+
+  function keepOriginal() {
+    fixDone = true;
+    addMsg('user', 'Keep the original phrasing in the textarea.');
+    setChips([]);
+
+    setTimeout(() => {
+      document.getElementById('metaWarn').style.display = 'none';
+      updateCardStatus('card3','sn3','sb3','done');
+      updateCardStatus('card4','sn4','sb4','done');
+
+      const st = document.getElementById('sumTmpl');
+      st.textContent = 'Original (Unverified)';
+      st.style.color = 'var(--dim)';
+
+      addMsg('ai', 'Keeping your original text. Routing is verified. Please inspect Card 5 and tick the confirmation checkbox to publish.');
+      document.getElementById('approvalCard').classList.remove('locked');
+      document.getElementById('approvalCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
+
+      setChips([{
+        icon: '📋',
+        text: 'Review Card 5 summary and sign off',
+        fn: () => {
+          document.getElementById('approvalCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
+        }
+      }]);
+    }, 500);
+  }
+
+  function step_batch() {
+    addMsg('user', 'Announce a new weekend batch.');
+    setTimeout(() => {
+      addMsg('ai', 'I can help draft a batch broadcast! Let\'s finish publishing the Strategy Session first, then we will switch the form to the new batch flow.');
+      setChips([{ icon:'👉', text:'Continue Strategy Session setup', fn: step_goal }]);
+    }, 500);
+  }
+
+  function step_trouble() {
+    addMsg('user', 'Why was my previous template rejected?');
+    setTimeout(() => {
+      addMsg('ai', 'I inspected your Meta log: it was rejected under <strong>Policy 4.2 (Overly promotional claim)</strong>. Our real-time form checker on Card 3 automatically rewrites these before you submit.');
+      setChips([{ icon:'✅', text:'Set up a compliant strategy session funnel', fn: step_goal }]);
+    }, 500);
+  }
+
+  function togglePub() {
+    const ok = document.getElementById('confirmChk').checked;
+    const btn = document.getElementById('pubBtn');
+    btn.classList.toggle('ready', ok);
+    if (ok) {
+      addMsg('ai', 'Review confirmed! You have verified all settings. Click <strong>Publish Automation Live</strong> to deploy to WhatsApp.');
+    }
+  }
+
+  function publishFlow() {
+    if (!document.getElementById('confirmChk').checked) {
+      alert('Please check the confirmation box in Card 5 to review and sign off before publishing.');
+      return;
+    }
+    setStepper(6);
+    document.getElementById('successModal').classList.add('open');
+  }
+
+  function showEsc() { document.getElementById('escModal').classList.add('open'); }
+  function closeModals() {
+    document.getElementById('successModal').classList.remove('open');
+    document.getElementById('escModal').classList.remove('open');
+  }
+
+  function confirmEsc() {
+    closeModals();
+    
+    // Transform chat header into Human Support mode
+    const chatTitle = document.querySelector('.chat-hd h3');
+    const chatSub = document.querySelector('.chat-hd p');
+    const copAv = document.querySelector('.cop-av');
+    
+    chatTitle.textContent = 'Priya Sharma (Cheerio Support)';
+    chatSub.innerHTML = '<span style="color:var(--green); font-weight:600;">● Active in Session</span> · Technical Specialist';
+    copAv.textContent = '👩‍💼';
+    copAv.style.background = 'var(--green-bg)';
+    copAv.style.borderColor = 'var(--green-bd)';
+    copAv.style.color = 'var(--green)';
+
+    addMsg('ai', '🔔 <strong>Priya (Cheerio Specialist):</strong> "Hi Aman! I have joined your workspace with full visibility into your form inputs and template checks. How can I help you finalize your funnel?"');
+    
+    setChips([
+      { icon:'⚡', text:'Can you expedite Meta template verification?', fn: step_priya_expedite },
+      { icon:'📊', text:'Check if Google Sheet columns match my 4 questions', fn: step_priya_sheet },
+      { icon:'↩️', text:'Return to AI Copilot mode', fn: step_switch_copilot }
+    ]);
+  }
+
+  function step_priya_expedite() {
+    addMsg('user', 'Can you expedite Meta template verification for this Sunday?');
+    setTimeout(() => {
+      addMsg('ai', '👩‍💼 <strong>Priya:</strong> "Because we pre-validated your copy against Meta\'s Content Quality Guidelines on Card 3, automated approval typically takes under 15 minutes. If it ever exceeds 1 hour, our team automatically submits a tier-1 partner bypass. You are completely safe to publish."');
+      setChips([
+        { icon:'📊', text:'Check Google Sheet column mapping', fn: step_priya_sheet },
+        { icon:'↩️', text:'Return to Copilot mode & publish', fn: step_switch_copilot }
+      ]);
+    }, 500);
+  }
+
+  function step_priya_sheet() {
+    addMsg('user', 'Check if Google Sheet columns match my 4 questions.');
+    setTimeout(() => {
+      addMsg('ai', '👩‍💼 <strong>Priya:</strong> "I checked your connected sheet <em>GATESprint — Strategy Session Leads</em>. It has columns for: <code>Timestamp</code>, <code>Phone</code>, <code>Paper</code>, <code>Target Year</code>, <code>Status</code>, and <code>Counsellor Callback</code>. Everything maps 1:1."');
+      setChips([
+        { icon:'↩️', text:'Looks good, let\'s publish funnel', fn: step_switch_copilot }
+      ]);
+    }, 500);
+  }
+
+  function step_switch_copilot() {
+    addMsg('user', 'Back to Copilot — ready to finish up.');
+    setTimeout(() => {
+      const chatTitle = document.querySelector('.chat-hd h3');
+      const chatSub = document.querySelector('.chat-hd p');
+      const copAv = document.querySelector('.cop-av');
+      chatTitle.textContent = 'Setup Assistant';
+      chatSub.textContent = 'Tell me what to build — I\'ll auto-fill your form';
+      copAv.textContent = '✦';
+      copAv.style.background = 'var(--primary-bg)';
+      copAv.style.borderColor = 'var(--primary-bd)';
+      copAv.style.color = 'var(--primary)';
+
+      addMsg('ai', 'Handed back to Copilot. Review your summary on Card 5, tick the confirmation checkbox, and hit Publish!');
+      document.getElementById('approvalCard').scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }, 400);
+  }
+
+  function sendMsg() {
+    const inp = document.getElementById('msgInput');
+    const val = inp.value.trim();
+    if (!val) return;
+    inp.value = '';
+    addMsg('user', val);
+
+    setTimeout(() => {
+      const lower = val.toLowerCase();
+      if (lower.includes('strategy') || lower.includes('gate') || lower.includes('session')) {
+        step_goal();
+      } else if (lower.includes('saturday') || lower.includes('time') || lower.includes('day') || lower.includes('date')) {
+        step_editDay();
+      } else if (lower.includes('template') || lower.includes('meta') || lower.includes('policy') || lower.includes('warning')) {
+        step_template();
+      } else if (lower.includes('support') || lower.includes('human') || lower.includes('agent') || lower.includes('help')) {
+        showEsc();
+      } else if (!fixDone) {
+        addMsg('ai', `Understood! I've noted "${val}". Let's finish configuring the form fields on the right.`);
+        setChips([{ icon:'💬', text:'"Free GATE strategy session"', fn: step_goal }]);
+      } else {
+        addMsg('ai', 'All form fields are filled and verified. Check the approval box on Card 5 and click Publish when you are ready. 👆');
+      }
+    }, 500);
+  }
+</script>
+</body>
+</html>
